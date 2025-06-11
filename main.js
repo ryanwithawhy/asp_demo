@@ -21,6 +21,11 @@ const CONNECT_TO_ASP_SHELL_COMMAND = [
 
 // Get CLI argument
 const command = process.argv[2];
+const processors = [
+  'convert_to_farenheit',
+  'generate_maintenance_windows',
+  'generate_maintenance_tickets'
+];
 
 // Helper: Create collection for solar generator location data that will be used for forecasts and seed it
 async function createAndSeedAdminDataCollection(db){
@@ -54,11 +59,15 @@ async function seedCollections() {
 
 // Helper: Run mongosh command with --eval.  Used for starting and stopping processors
 function runMongoshEval(jsCommand) {
-  const args = [
-    '--eval', `const database_name="${process.env.MONGODB_DATABASE}"; ${jsCommand}`,
-    ...CONNECT_TO_ASP_SHELL_COMMAND
-  ];
-  spawn('mongosh', args, { stdio: 'inherit' });
+  try { // 🟢 Added try
+    const args = [
+      '--eval', `const database_name="${process.env.MONGODB_DATABASE}"; ${jsCommand}`,
+      ...CONNECT_TO_ASP_SHELL_COMMAND
+    ];
+    spawn('mongosh', args, { stdio: 'inherit' });
+  } catch (error) { // 🟢 Added catch
+    console.error(`Error running ${jsCommand}: `, error);
+  }
 }
 
 // Main
@@ -88,25 +97,22 @@ if (command === '--setup') {
 }
 
 if (command === '--start_processors') {
-  runMongoshEval(`
-    sp.convert_to_farenheit.start();
-    sp.generate_maintenance_windows.start();
-    sp.generate_maintenance_tickets.start();
-  `);
+  processors.forEach(processor => {
+    console.log(`Starting processor: ${processor}`);
+    runMongoshEval(`sp.${processor}.start();`);
+  });
 }
 
 if (command === '--stop_processors') {
-  runMongoshEval(`
-    sp.convert_to_farenheit.stop();
-    sp.generate_maintenance_windows.stop();
-    sp.generate_maintenance_tickets.stop();
-  `);
+  processors.forEach(processor => {
+    console.log(`Starting processor: ${processor}`);
+    runMongoshEval(`sp.${processor}.stop();`);
+  });
 }
 
 if (command === '--drop_processors') {
-  runMongoshEval(`
-    sp.convert_to_farenheit.drop();
-    sp.generate_maintenance_windows.drop();
-    sp.generate_maintenance_tickets.drop();
-  `);
+  processors.forEach(processor => {
+    console.log(`Starting processor: ${processor}`);
+    runMongoshEval(`sp.${processor}.drop();`);
+  });
 }
