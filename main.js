@@ -1,11 +1,9 @@
 import { config } from 'dotenv';
 import { MongoClient } from 'mongodb';
 import {spawn} from 'child_process';
-import { base_device_admin_data }  from './seed_data.js';
-import fs from 'fs';
+import { base_device_admin_data }  from './scripts/seed_data.js';
 
 // Goal: Running this script script creates and seeds an admin data collection used for HTTPS calls and runs the scripts creating the stream processors.
-
 
 // Load environment variables
 config();
@@ -68,9 +66,9 @@ if (command === '--setup') {
   await seedCollections();
 
   const allScripts = [
-    './convert_to_farenheit.mongodb.js',
-    './generate_maintenance_tickets.mongodb.js',
-    './generate_maintenance_windows.mongodb.js',
+    './scripts/convert_to_farenheit.mongodb.js',
+    './scripts/generate_maintenance_tickets.mongodb.js',
+    './scripts/generate_maintenance_windows.mongodb.js',
   ];
 
   for (const script of allScripts) {
@@ -91,7 +89,7 @@ if (command === '--setup') {
 
 if (command === '--start_processors') {
   runMongoshEval(`
-    sp.add_farenheit.start();
+    sp.convert_to_farenheit.start();
     sp.generate_maintenance_windows.start();
     sp.generate_maintenance_tickets.start();
   `);
@@ -99,7 +97,7 @@ if (command === '--start_processors') {
 
 if (command === '--stop_processors') {
   runMongoshEval(`
-    sp.add_farenheit.stop();
+    sp.convert_to_farenheit.stop();
     sp.generate_maintenance_windows.stop();
     sp.generate_maintenance_tickets.stop();
   `);
@@ -107,40 +105,8 @@ if (command === '--stop_processors') {
 
 if (command === '--drop_processors') {
   runMongoshEval(`
-    sp.add_farenheit.drop();
+    sp.convert_to_farenheit.drop();
     sp.generate_maintenance_windows.drop();
     sp.generate_maintenance_tickets.drop();
   `);
 }
-
-
-// await seedCollections();
-
-// // await createCollections();
-
-// // create vars for the stream scripts
-// const convertToFarenheitStreamDef = fs.createReadStream('./convert_to_farenheit.mongodb.js');
-// const generateMaintenanceData = fs.createReadStream('./generate_maintenance_data.mongodb.js');
-
-
-// // const allScripts = [convertToFarenheitStreamDef, generateMaintenanceData]
-// const allScripts = [
-//     './convert_to_farenheit.mongodb.js',
-//     './generate_maintenance_data.mongodb.js',
-//     './generate_maintenance_windows.mongodb.js',
-// ];
-
-
-// for (const script of allScripts) {
-//   console.log(`Starting script: ${script}`);
-
-//   const commandArgs = [
-//     '--eval', `const database_name="${process.env.MONGODB_DATABASE}"`,
-//     ...CONNECT_TO_ASP_SHELL_COMMAND,
-//     script  // <- your script variable, untouched
-//   ];
-
-//   const mongosh = spawn('mongosh', commandArgs, {
-//     stdio: 'inherit'  // keep this so you see output
-//   });
-// }

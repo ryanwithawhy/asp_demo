@@ -1,11 +1,43 @@
 # Overview
 
-The purpose of this repository is to show how Atlas Stream Processing can be used to:
+Atlas Stream Processing allows you to read, write, and transform data in and out of MongoDB in real-time.  The purpose of this repository is to show how Atlas Stream Processing can be used to:
 
 1. Stream data into MongoDB from Apache Kafka sources (using a sample stream; no outside Kafka connection required)
 2. Transform data in realtime before it is loaded into a collection
 3. Use window functions to aggregate groups of data that you store in other collections
 4. Enrich your data with data requested from external APIs
+
+# The Scenario
+
+This repository uses a sample Apache Kafka stream containing information about about solar generators.  The events will be JSON and take the following format:
+
+```json
+{
+  device_id: 'device_8',
+  group_id: 7,
+  timestamp: '2024-08-12T21:41:01.788+00:00',
+  max_watts: 450,
+  event_type: 0,
+  obs: {
+    watts: 252,
+    temp: 17
+  }
+}
+```
+
+It will then three stream processors that will handle the data.
+
+## convert_to_farenheit
+
+This processor takes the records from the sample Kafka stream, converts the temperature readings from celsius to farenheit, and writes them to a collection called solar_equipment_logs.
+
+## generate_maintenance_windows
+
+This processor reads the change streams from the solar_equipment_logs collection with the farenheit data, records the min, max, and averages of watts and temperature in addition to the total record count for each device every 30 seconds, and then writes that to a collection called maintenance_windows.
+
+## generate_maintenance_tickets
+
+This processor reads the change streams from the maintenance windows collection, detects if any device is averaging less than 400 watts in a 30 second window, and if so, creates a maintenance ticket in the maintenance_tickets collection.  Additionally, it uses weather data for each device to set the priority of the ticket.  It does this by looking up the the location of a device it needs to generate a ticket for and sending that location data to the open-meteo weather api to get the weather forecast for that location.
 
 # What You Need
 

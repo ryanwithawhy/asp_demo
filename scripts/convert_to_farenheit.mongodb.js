@@ -67,9 +67,9 @@ pipeline = [
 
 // Drop the existing stream processor if it exists
 try {
-  sp.add_farenheit.drop();
+  sp.convert_to_farenheit.drop();
 } catch (e) { }
 
 // Create the stream processor and start it
-sp.createStreamProcessor("add_farenheit", pipeline);
-// sp.add_farenheit.start();
+sp.createStreamProcessor("convert_to_farenheit", pipeline);
+// sp.convert_to_farenheit.start();
