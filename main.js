@@ -105,14 +105,14 @@ if (command === '--start_processors') {
 
 if (command === '--stop_processors') {
   processors.forEach(processor => {
-    console.log(`Starting processor: ${processor}`);
+    console.log(`Stopping processor: ${processor}`);
     runMongoshEval(`sp.${processor}.stop();`);
   });
 }
 
 if (command === '--drop_processors') {
   processors.forEach(processor => {
-    console.log(`Starting processor: ${processor}`);
+    console.log(`Dropping processor: ${processor}`);
     runMongoshEval(`sp.${processor}.drop();`);
   });
 }
